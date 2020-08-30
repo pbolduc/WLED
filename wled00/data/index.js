@@ -1,17 +1,19 @@
-import iro from "iro";
+/*jslint es6 */
+/*jslint white: true */
+import iro from '@jaames/iro';
 import RangeTouch from "rangetouch";
 
-export function handleVisibilityChange() {
+function handleVisibilityChange() {
 	if (!document.hidden && new Date () - lastUpdate > 3000) {
 		requestJson(null);
 	}
 }
 
-export function sCol(na, col) {
+function sCol(na, col) {
 	d.documentElement.style.setProperty(na, col);
 }
 
-export function applyCfg()
+function applyCfg()
 {
 	cTheme(cfg.theme.base === "light");
 	var bg = cfg.theme.color.bg;
@@ -36,25 +38,25 @@ export function applyCfg()
 	localStorage.setItem('wledUiCfg', JSON.stringify(cfg));
 }
 
-export function tglHex()
+function tglHex()
 {
 	cfg.comp.colors.hex = !cfg.comp.colors.hex;
 	applyCfg();
 }
 
-export function tglTheme()
+function tglTheme()
 {
 	cfg.theme.base = (cfg.theme.base === "light") ? "dark":"light";
 	applyCfg();
 }
 
-export function tglLabels()
+function tglLabels()
 {
 	cfg.comp.labels = !cfg.comp.labels;
 	applyCfg();
 }
 
-export function cTheme(light) {
+function cTheme(light) {
 	if (light) {
 	sCol('--c-1','#eee');
 	sCol('--c-f','#000');
@@ -98,7 +100,7 @@ export function cTheme(light) {
 	}
 }
 
-export function loadBg(iUrl) {
+function loadBg(iUrl) {
 	let bg = document.getElementById('bg');
 	let img = document.createElement("img");
 	img.src = iUrl;
@@ -112,7 +114,7 @@ export function loadBg(iUrl) {
 	});
 }
 
-export function onLoad() {
+function onLoad() {
 	if (window.location.protocol == "file:") {
 	loc = true;
 	locip = localStorage.getItem('locIp');
@@ -129,7 +131,7 @@ export function onLoad() {
 	loadBg(cfg.theme.bg.url);
 	
 	var cd = d.getElementById('csl').children;
-	for (i = 0; i < cd.length; i++) {
+	for (var i = 0; i < cd.length; i++) {
 		cd[i].style.backgroundColor = "rgb(0, 0, 0)";
 	}
 	selectSlot(0);
@@ -145,17 +147,17 @@ export function onLoad() {
 	if (localStorage.getItem('pcm') == "true") togglePcMode(true);
 }
 
-export function updateTablinks(tabI)
+function updateTablinks(tabI)
 {
-	tablinks = d.getElementsByClassName("tablinks");
-	for (i = 0; i < tablinks.length; i++) {
+	var tablinks = d.getElementsByClassName("tablinks");
+	for (var i = 0; i < tablinks.length; i++) {
 		tablinks[i].className = tablinks[i].className.replace(" active", "");
 	}
 	if (pcMode) return;
 	tablinks[tabI].className += " active";
 }
 
-export function openTab(tabI, force = false) {
+function openTab(tabI, force = false) {
 	if (pcMode && !force) return;
 	var i, tabcontent, tablinks;
 	iSlide = tabI;
@@ -165,7 +167,7 @@ export function openTab(tabI, force = false) {
 }
 
 var timeout;
-export function showToast(text, error = false) {
+function showToast(text, error = false) {
 	if (error) d.getElementById('connind').style.backgroundColor = "#831";
 	var x = d.getElementById("toast");
 	x.innerHTML = text;
@@ -177,14 +179,14 @@ export function showToast(text, error = false) {
 	timeout = setTimeout(function(){ x.className = x.className.replace("show", ""); }, 2900);
 }
 
-export function showErrorToast() {
+function showErrorToast() {
 	showToast('Connection to light failed!', true);
 }
-export function clearErrorToast() {
+function clearErrorToast() {
 	d.getElementById("toast").className = d.getElementById("toast").className.replace("error", "");
 }
 
-export function getRuntimeStr(rt)
+function getRuntimeStr(rt)
 {
 	var t = parseInt(rt);
 	var days = Math.floor(t/86400);
@@ -199,12 +201,12 @@ export function getRuntimeStr(rt)
 	return str;
 }
 
-export function inforow(key, val, unit = "")
+function inforow(key, val, unit = "")
 {
 	return `<tr><td class="keytd">${key}</td><td class="valtd">${val}${unit}</td></tr>`;
 }
 
-export function populateInfo(i)
+function populateInfo(i)
 {
 	var cn="";
 	var heap = i.freeheap/1000;
@@ -241,12 +243,12 @@ export function populateInfo(i)
 	d.getElementById('kv').innerHTML = cn;
 }
 
-export function populateSegments(s)
+function populateSegments(s)
 {
 	var cn = "";
 	segCount = 0, lowestUnused = 0; lSeg = 0;
  
-	for (y in s.seg)
+	for (var y in s.seg)
 	{
 		segCount++;
 		
@@ -317,7 +319,7 @@ export function populateSegments(s)
 		resetUtil();
 		noNewSegs = false;
 	}
-	for (i = 0; i <= lSeg; i++) {
+	for (var i = 0; i <= lSeg; i++) {
 	updateLen(i);
 	updateTrail(d.getElementById(`seg${i}bri`));
 	if (segCount < 2) d.getElementById(`segd${lSeg}`).style.display = "none";
@@ -325,7 +327,7 @@ export function populateSegments(s)
 	d.getElementById('rsbtn').style.display = (segCount > 1) ? "inline":"none";
 }
 
-export function updateTrail(e, slidercol)
+function updateTrail(e, slidercol)
 {
 	if (e==null) return;
 	var progress = e.value *100 /255;
@@ -341,7 +343,7 @@ export function updateTrail(e, slidercol)
 	e.parentNode.getElementsByClassName('sliderdisplay')[0].style.background = val;
 }
 
-export function updateLen(s)
+function updateLen(s)
 {
 	if (!d.getElementById(`seg${s}s`)) return;
 	var start = parseInt(d.getElementById(`seg${s}s`).value);
@@ -366,7 +368,7 @@ export function updateLen(s)
 	d.getElementById(`seg${s}len`).innerHTML = out;
 }
 
-export function updateUI()
+function updateUI()
 {
 	d.getElementById('buttonPower').className = (isOn) ? "active":"";
 	d.getElementById('buttonNl').className = (nlA) ? "active":"";
@@ -380,19 +382,19 @@ export function updateUI()
 	if (isRgbw) d.getElementById('wwrap').style.display = "block";
 	
 	var btns = document.getElementsByClassName("psts");
-	for (i = 0; i < btns.length; i++) {
+	for (var i = 0; i < btns.length; i++) {
 		btns[i].className = btns[i].className.replace(" active", "");
 		if ((savedPresets >> i) & 0x01) btns[i].className += " stored";
 	}
 	if (currentPreset > 0 && currentPreset <= btns.length) btns[currentPreset -1].className += " active";
 
-	spal = d.getElementById("selectPalette");
+	var spal = d.getElementById("selectPalette");
 	spal.style.backgroundColor = (spal.selectedIndex > 0) ? "var(--c-6)":"var(--c-3)";
 	updateHex();
 	updateRgb();
 }
 
-export function displayRover(i,s)
+function displayRover(i,s)
 {
 	d.getElementById('rover').style.transform = (i.live && s.lor == 0) ? "translateY(0px)":"translateY(100%)";
 	var sour = i.lip ? i.lip:""; if (sour.length > 2) sour = " from " + sour;
@@ -400,7 +402,7 @@ export function displayRover(i,s)
 	d.getElementById('roverstar').style.display = (i.live && s.lor) ? "block":"none";
 }
 
-export function compare(a, b) {
+function compare(a, b) {
 	if (a.name < b.name){
 		return -1;
 	}
@@ -408,20 +410,20 @@ export function compare(a, b) {
 }
 var jsonTimeout;
 var reqC = 0;
-export function requestJson(command, rinfo = true, verbose = true) {
+function requestJson(command, rinfo = true, verbose = true) {
 	d.getElementById('connind').style.backgroundColor = "#a90";
 	lastUpdate = new Date();
 	if (!jsonTimeout) jsonTimeout = setTimeout(showErrorToast, 3000);
 	var req = null;
-	e1 = d.getElementById('fxlist');
-	e2 = d.getElementById('selectPalette');
+	var e1 = d.getElementById('fxlist');
+	var e2 = d.getElementById('selectPalette');
 
-	url = rinfo ? '/json/si': (command ? '/json/state':'/json');
+	var url = rinfo ? '/json/si': (command ? '/json/state':'/json');
 	if (loc) {
 		url = `http://${locip}${url}`;
 	}
 	
-	type = command ? 'post':'get';
+	var type = command ? 'post':'get';
 	if (command)
 	{
 		command.v = verbose;
@@ -512,7 +514,7 @@ export function requestJson(command, rinfo = true, verbose = true) {
 			return;
 		}
 		var cd = d.getElementById('csl').children;
-		for (e = 2; e >= 0; e--)
+		for (var e = 2; e >= 0; e--)
 		{
 			cd[e].style.backgroundColor = "rgb(" + i.col[e][0] + "," + i.col[e][1] + "," + i.col[e][2] + ")";
 			if (isRgbw) whites[e] = parseInt(i.col[e][3]);
@@ -537,14 +539,14 @@ export function requestJson(command, rinfo = true, verbose = true) {
 	})
 }
 
-export function togglePower() {
+function togglePower() {
 	isOn = !isOn;
 	var obj = {"on": isOn};
 	obj.transition = parseInt(d.getElementById('cyctt').value*10);
 	requestJson(obj);
 }
 
-export function toggleNl() {
+function toggleNl() {
 	nlA = !nlA;
 	if (nlA)
 	{
@@ -556,7 +558,7 @@ export function toggleNl() {
 	requestJson(obj);
 }
 
-export function toggleSync() {
+function toggleSync() {
 	syncSend = !syncSend;
 	if (syncSend)
 	{
@@ -569,7 +571,7 @@ export function toggleSync() {
 	requestJson(obj);
 }
 
-export function toggleLiveview() {
+function toggleLiveview() {
 	isLv = !isLv;
 	d.getElementById('liveview').style.display = (isLv) ? "block":"none";
 	var url = loc ? `http://${locip}/liveview`:"/liveview";
@@ -578,14 +580,14 @@ export function toggleLiveview() {
 	size();
 }
 
-export function toggleInfo() {
+function toggleInfo() {
 	isInfo = !isInfo;
 	if (isInfo) populateInfo(lastinfo);
 	d.getElementById('info').style.transform = (isInfo) ? "translateY(0px)":"translateY(100%)";
 	d.getElementById('buttonI').className = (isInfo) ? "active":"";
 }
 
-export function makeSeg() {
+function makeSeg() {
 	var ns = 0;
 	if (lowestUnused > 0) {
 		var pend = d.getElementById(`seg${lowestUnused -1}e`).value;
@@ -614,27 +616,27 @@ export function makeSeg() {
 	d.getElementById('segutil').innerHTML = cn;
 }
 
-export function resetUtil() {
+function resetUtil() {
 	var cn = `<button class="btn btn-s btn-i rect" onclick="makeSeg()"><i class="icons btn-icon">&#xe18a;</i>Add segment</button><br>`;
 	d.getElementById('segutil').innerHTML = cn;
 }
 
-export function selSegEx(s)
+function selSegEx(s)
 {
 	var obj = {"seg":[]};
-	for(i=0; i<=lSeg; i++){
+	for(var i=0; i<=lSeg; i++){
 		obj.seg.push({"sel":(i==s)?true:false});
 	}
 	requestJson(obj);
 }
 
-export function selSeg(s){
+function selSeg(s){
 	var sel = d.getElementById(`seg${s}sel`).checked;
 	var obj = {"seg": {"id": s, "sel": sel}};
 	requestJson(obj, false);
 }
 
-export function setSeg(s){
+function setSeg(s){
 	var start = parseInt(d.getElementById(`seg${s}s`).value);
 	var stop	= parseInt(d.getElementById(`seg${s}e`).value);
 	if (stop <= start) {delSeg(s); return;};
@@ -649,7 +651,7 @@ export function setSeg(s){
 	requestJson(obj);
 }
 
-export function delSeg(s){
+function delSeg(s){
 	if (segCount < 2) {
 		showToast("You need to have multiple segments to delete one!");
 		return;
@@ -660,61 +662,61 @@ export function delSeg(s){
 	requestJson(obj, false);
 }
 
-export function setRev(s){
+function setRev(s){
 	var rev = d.getElementById(`seg${s}rev`).checked;
 	var obj = {"seg": {"id": s, "rev": rev}};
 	requestJson(obj, false);
 }
 
-export function setMi(s){
+function setMi(s){
 	var mi = d.getElementById(`seg${s}mi`).checked;
 	var obj = {"seg": {"id": s, "mi": mi}};
 	requestJson(obj, false);
 }
 
-export function setSegPwr(s){
+function setSegPwr(s){
 	var obj = {"seg": {"id": s, "on": !powered[s]}};
 	requestJson(obj);
 }
 
-export function setSegBri(s){
+function setSegBri(s){
 	var obj = {"seg": {"id": s, "bri": parseInt(d.getElementById(`seg${s}bri`).value)}};
 	requestJson(obj);
 }
 
-export function setX(ind) {
+function setX(ind) {
 	var obj = {"seg": {"fx": parseInt(ind)}};
 	requestJson(obj);
 }
 
-export function setPalette()
+function setPalette()
 {
 	var obj = {"seg": {"pal": parseInt(d.getElementById('selectPalette').value)}};
 	requestJson(obj);
 }
 
-export function setBri() {
+function setBri() {
 	var obj = {"bri": parseInt(d.getElementById('sliderBri').value)};
 	obj.transition = parseInt(d.getElementById('cyctt').value*10);
 	requestJson(obj);
 }
 
-export function setSpeed() {
+function setSpeed() {
 	var obj = {"seg": {"sx": parseInt(d.getElementById('sliderSpeed').value)}};
 	requestJson(obj, false);
 }
 
-export function setIntensity() {
+function setIntensity() {
 	var obj = {"seg": {"ix": parseInt(d.getElementById('sliderIntensity').value)}};
 	requestJson(obj, false);
 }
 
-export function setLor(i) {
+function setLor(i) {
 	var obj = {"lor": i};
 	requestJson(obj);
 }
 
-export function toggleCY() {
+function toggleCY() {
 	var obj = {"pl" : -1};
 	if (d.getElementById('cyToggle').checked)
 	{
@@ -725,11 +727,11 @@ export function toggleCY() {
 	requestJson(obj);
 }
 
-export function togglePS() {
+function togglePS() {
 	ps = !ps;
 	
 	var btns = document.getElementsByClassName("psts");
-	for (i = 0; i < btns.length; i++) {
+	for (var i = 0; i < btns.length; i++) {
 		if (ps) {
 			btns[i].className += " saving";
 		} else {
@@ -740,7 +742,7 @@ export function togglePS() {
 	d.getElementById("psLabel").innerHTML = (ps) ? "Save to slot":"Load from slot";
 }
 
-export function setPreset(i) {
+function setPreset(i) {
 	var obj = {"ps": i}
 	if ((savedPresets >> (i-1)) & 0x01) {
 		showToast("Loading config from slot " + i +".");
@@ -754,13 +756,14 @@ export function setPreset(i) {
 	requestJson(obj);
 }
 
-export function selectSlot(b) {
+function selectSlot(b) {
 	csel = b;
 	var cd = d.getElementById('csl').children;
-	for (i = 0; i < cd.length; i++) {
-		cd[i].style.border="2px solid white";
-		cd[i].style.margin="5px";
-		cd[i].style.width="42px";
+	for (var i = 0; i < cd.length; i++) {
+		var style = cd[i].style;
+		style.border="2px solid white";
+		style.margin="5px";
+		style.width="42px";
 	}
 	cd[csel].style.border="5px solid white";
 	cd[csel].style.margin="2px";
@@ -773,7 +776,7 @@ export function selectSlot(b) {
 }
 
 var lasth = 0;
-export function pC(col)
+function pC(col)
 {
 	if (col == "rnd")
 	{
@@ -788,7 +791,7 @@ export function pC(col)
 	setColor(0);
 }
 
-export function updateRgb()
+function updateRgb()
 {
 	var col = cpick.color.rgb;
 	var s = d.getElementById('sliderR');
@@ -799,7 +802,7 @@ export function updateRgb()
 	s.value = col.b; updateTrail(s,3);
 }
 
-export function updateHex()
+function updateHex()
 {
 	var str = cpick.color.hexString;
 	str = str.substring(1);
@@ -809,12 +812,12 @@ export function updateHex()
 	d.getElementById('hexcnf').style.backgroundColor = "var(--c-3)";
 }
 
-export function hexEnter() {
+function hexEnter() {
 	d.getElementById('hexcnf').style.backgroundColor = "var(--c-6)";
 	if(event.keyCode == 13) fromHex();
 }
 
-export function fromHex()
+function fromHex()
 {
 	var str = d.getElementById('hexc').value;
 	console.log(str);
@@ -828,7 +831,7 @@ export function fromHex()
 	setColor(2);
 }
 
-export function fromRgb()
+function fromRgb()
 {
 	var r = d.getElementById('sliderR').value;
 	var g = d.getElementById('sliderG').value;
@@ -837,7 +840,7 @@ export function fromRgb()
 	setColor(0);
 }
 
-export function setColor(sr) {
+function setColor(sr) {
 	var cd = d.getElementById('csl').children;
 	if (sr == 1 && cd[csel].style.backgroundColor == 'rgb(0, 0, 0)') cpick.color.setChannel('hsv', 'v', 100);
 	cd[csel].style.backgroundColor = cpick.color.rgbString;
@@ -859,13 +862,13 @@ var hc = 0;
 setInterval(function(){if (!isInfo) return; hc+=18; if (hc>300) hc=0; if (hc>200)hc=306; if (hc==144) hc+=36; if (hc==108) hc+=18;
 d.getElementById('heart').style.color = `hsl(${hc}, 100%, 50%)`}, 910);
 
-export function openGH()
+function openGH()
 {
 	window.open("https://github.com/Aircoookie/WLED/wiki");
 }
 
 var cnfr = false;
-export function cnfReset()
+function cnfReset()
 {
 	if (!cnfr)
 	{
@@ -878,8 +881,7 @@ export function cnfReset()
 }
 
 var cnfrS = false;
-export function rSegs()
-{
+function rSegs() {
 	var bt = d.getElementById('rsbtn');
 	if (!cnfrS)
 	{
@@ -891,33 +893,33 @@ export function rSegs()
 	bt.style.color = "#fff";
 	bt.innerHTML = "Reset segments";
 	var obj = {"seg":[{"start":0,"stop":ledCount,"sel":true}]};
-	for(i=1; i<=lSeg; i++){
+	for(var i=1; i<=lSeg; i++){
 		obj.seg.push({"stop":0});
 	}
 	requestJson(obj);
 }
 
-export function expand(i)
-{
+function expand(i) {
 	expanded[i] = !expanded[i];
 	d.getElementById('seg' +i).style.display = (expanded[i]) ? "block":"none";
 	d.getElementById('sege' +i).style.transform = (expanded[i]) ? "rotate(180deg)":"rotate(0deg)"
 }
 
-export function unfocusSliders() {
+function unfocusSliders() {
 	d.getElementById("sliderBri").blur();
 	d.getElementById("sliderSpeed").blur();
 	d.getElementById("sliderIntensity").blur();
 }
 
 //sliding UI
-const _C = document.querySelector('.container'), N = 4;
+var _C, cpick;
+const N = 4;
 
 let iSlide = 0, x0 = null, y0 = null, scrollS = 0, locked = false, w;
 
-export function unify(e) {	return e.changedTouches ? e.changedTouches[0] : e }
+function unify(e) {	return e.changedTouches ? e.changedTouches[0] : e }
 
-export function lock(e) {
+function lock(e) {
 	if (pcMode) return;
 	var l = e.target.classList;
 	if (l.contains('noslide') || l.contains('iro__wheel__saturation') || l.contains('iro__slider__value')	|| l.contains('iro__slider')) return;
@@ -928,7 +930,7 @@ export function lock(e) {
 	_C.classList.toggle('smooth', !(locked = true))
 }
 
-export function drag(e) {
+function drag(e) {
 	if (!locked || pcMode) return;
 	if (d.getElementsByClassName("tabcontent")[iSlide].scrollTop != scrollS) {
 		move(e); return;
@@ -937,7 +939,7 @@ export function drag(e) {
 	_C.style.setProperty('--tx', `${Math.round(unify(e).clientX - x0)}px`)
 }
 
-export function move(e) {
+function move(e) {
 	if(!locked || pcMode) return;
 	var dx = unify(e).clientX - x0, s = Math.sign(dx), 
 			f = +(s*dx/w).toFixed(2);
@@ -954,7 +956,7 @@ export function move(e) {
 	x0 = null
 }
 
-export function size() { 
+function size() { 
 	w = window.innerWidth;
 	var h = d.getElementById('top').clientHeight;
 	sCol('--th', h + "px");
@@ -964,7 +966,7 @@ export function size() {
 	togglePcMode();
 }
 
-export function togglePcMode(fromB = false)
+function togglePcMode(fromB = false)
 {
 	if (fromB) {
 	pcModeA = !pcModeA;
@@ -989,11 +991,11 @@ export function togglePcMode(fromB = false)
 	lastw = w;
 }
 
-export function isObject(item) {
+function isObject(item) {
 	return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
-export function mergeDeep(target, ...sources) {
+function mergeDeep(target, ...sources) {
 	if (!sources.length) return target;
 	const source = sources.shift();
 
@@ -1009,3 +1011,132 @@ export function mergeDeep(target, ...sources) {
 	}
 	return mergeDeep(target, ...sources);
 }
+
+window.addEventListener('DOMContentLoaded', (event) => {
+
+	const document = event.target;
+
+	cpick = new iro.ColorPicker("#picker", {
+		width: 260,
+		wheelLightness: false
+	});
+
+	RangeTouch.setup('input[type="range"]', {});
+
+	_C = document.querySelector('.container');
+
+	size();
+	_C.style.setProperty('--n', N);
+
+	window.addEventListener('resize', size, false);
+
+	_C.addEventListener('mousedown', lock, false);
+	_C.addEventListener('touchstart', lock, false);
+
+	_C.addEventListener('mousemove', drag, false);
+	_C.addEventListener('touchmove', drag, false);
+
+	_C.addEventListener('mouseout', move, false);
+	_C.addEventListener('mouseup', move, false);
+	_C.addEventListener('touchend', move, false);
+});
+
+// gloabals
+
+
+window.loc = false, window.locip = '';
+window.ps = false, window.noNewSegs = false;
+window.isOn = false, window.nlA = false, window.isLv = false, window.isInfo = false, window.syncSend = false, window.syncTglRecv = true, window.isRgbw = false;
+window.whites = [0,0,0];
+window.expanded = [false];
+window.powered = [true];
+window.nlDur = 60, window.nlTar = 0;
+window.nlFade = false;
+window.selectedFx = 0;
+window.csel = 0;
+window.savedPresets = 0;
+window.currentPreset = -1;
+window.lastUpdate = 0;
+window.segCount = 0, window.ledCount = 0, window.lowestUnused = 0, window.maxSeg = 0, window.lSeg = 0;
+window.pcMode = false, window.pcModeA = false, window.lastw = 0;
+window.d = document;
+window.lastinfo = {};
+window.cfg = {
+	theme:{base:"dark", bg:{url:""}, alpha:{bg:0.6,tab:0.6}, color:{bg:""}},
+	comp :{colors:{picker: true, rgb: false, quick: true, hex: false}, labels:true, pcmbot:false}
+};
+
+// export all functions as global
+/*
+window.applyCfg = undefined;
+window.clearErrorToast = undefined;
+window.compare = undefined;
+window.cTheme = undefined;
+window.displayRover = undefined;
+window.getRuntimeStr = undefined;
+window.hexEnter = undefined;
+window.inforow = undefined;
+window.isObject = undefined;
+window.loadBg = undefined;
+window.mergeDeep = undefined;
+window.populateInfo = undefined;
+window.populateSegments = undefined;
+window.resetUtil = undefined;
+window.sCol = undefined;
+window.selSegEx = undefined;
+window.setColor = undefined;
+window.setMi = undefined;
+window.setRev = undefined;
+window.setSegBri = undefined;
+window.setSegPwr = undefined;
+window.showErrorToast = undefined;
+window.showToast = undefined;
+window.tglLabels = undefined;
+window.unfocusSliders = undefined;
+window.unify = undefined;
+window.updateHex = undefined;
+window.updateLen = undefined;
+window.updateRgb = undefined;
+window.updateTablinks = undefined;
+window.updateUI = undefined;
+*/
+
+window.handleVisibilityChange = handleVisibilityChange;
+window.onLoad = onLoad;
+window.size = size;
+window.move = move;
+window.drag = drag;
+window.lock = lock;
+window.togglePcMode = togglePcMode;
+window.setX = setX;
+window.setPalette = setPalette;
+window.setBri = setBri;
+window.setSpeed = setSpeed;
+window.setIntensity = setIntensity;
+window.updateTrail =  updateTrail;
+window.makeSeg = makeSeg;
+window.selSeg = selSeg;
+window.setSeg = setSeg;
+window.delSeg = delSeg;
+window.tglHex = tglHex;
+
+window.fromHex = fromHex;
+window.fromRgb = fromRgb;
+
+window.toggleCY = toggleCY;
+window.togglePS = togglePS;
+window.setPreset = setPreset;
+window.pC = pC;
+window.selectSlot = selectSlot;
+window.openGH = openGH;
+window.openTab = openTab;
+window.tglTheme = tglTheme;
+
+window.toggleInfo = toggleInfo;
+window.toggleLiveview = toggleLiveview;
+window.toggleNl = toggleNl;
+window.togglePower = togglePower;
+window.toggleSync = toggleSync;
+window.requestJson = requestJson;
+window.cnfReset = cnfReset;
+window.setLor = setLor;

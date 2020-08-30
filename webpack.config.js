@@ -1,5 +1,6 @@
 // Webpack uses this to work with directories
 const path = require('path');
+const InlineSourceWebpackPlugin = require('inline-source-webpack-plugin');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
@@ -41,8 +42,14 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
+      inlineSource: '.(js|css)$', // embed all javascript and css inline,
       template: path.resolve(__dirname, "wled00/data", "index.htm"),
       hash: false
+    }),
+    new InlineSourceWebpackPlugin({
+      compress: true,
+      rootpath: './wled00/data/dist',
+      noAssetMatch: 'warn'
     })
   ]
 };
