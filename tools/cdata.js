@@ -76,7 +76,7 @@ function writeHtmlGzipped(sourceFile, resultFile) {
     }
 
     html = adoptVersionAndRepo(html);
-    zlib.gzip(html, function (error, result) {
+    zlib.gzip(html, { level: zlib.constants.Z_BEST_COMPRESSION }, function (error, result) {
       if (error) {
         console.warn(error);
         throw error;
@@ -182,7 +182,7 @@ function writeChunks(srcDir, specs, resultFile) {
   fs.writeFileSync(resultFile, src);
 }
 
-writeHtmlGzipped("wled00/data/index.htm", "wled00/html_ui.h");
+writeHtmlGzipped("wled00/data/dist/index.htm", "wled00/html_ui.h");
 
 writeChunks(
   "wled00/data",

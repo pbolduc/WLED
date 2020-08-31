@@ -15,7 +15,7 @@ module.exports = {
   // Webpack will bundle all JavaScript into this file
   output: {
     path: path.resolve(__dirname, 'wled00/data/dist'),
-    filename: 'bundle.js'
+    filename: 'index.js'
   },
 
   // Default mode for Webpack is production.
@@ -39,6 +39,10 @@ module.exports = {
     ]
   },
   optimization: {
+    minimize: true,
+    minimizer: [new UglifyJsPlugin({
+      sourceMap: false,
+    })]
   },
   plugins: [
     new HtmlWebpackPlugin({
