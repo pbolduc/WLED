@@ -18,6 +18,8 @@ class HomePage extends Page {
     get buttonConfig () { return $('.btnwrap > button:nth-child(6)') }
     get buttonPCMode() { return $('#buttonPcm') }
 
+    quickColorSelect(n) { return $$('.qcs')[n] };
+
     // top bottom
     get btnColors () { return $('#bot').$('button') }
     get btnEffects () { return $('#bot').$('button') }
