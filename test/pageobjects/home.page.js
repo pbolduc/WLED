@@ -20,14 +20,31 @@ class HomePage extends Page {
 
     quickColorSelect(n) { return $$('.qcs')[n] };
 
-    // top bottom
-    get btnColors () { return $('#bot').$('button') }
-    get btnEffects () { return $('#bot').$('button') }
-    get btnSegments () { return $('#bot').$('button') }
-    get btnFavorites () { return $('#bot').$('button') }
+    cslButton(n) { return $('#csl').$$('button')[n]};
+
+    // top bottom 
+    get buttonColors () { return $('button.tablinks:nth-child(1)') }
+    get buttonEffects () { return $('button.tablinks:nth-child(2)') }
+    get buttonSegments () { return $('button.tablinks:nth-child(3)') }
+    get buttonFavorites () { return $('button.tablinks:nth-child(4)') }
 
     get activeTabLink() { return $('#bot').$('.active') }
 
+    clickColorsTab() {
+        buttonColors.click();
+    }
+
+    clickEffectsTab() {
+        buttonColors.click();
+    }
+
+    clickSegmentsTab() {
+        buttonColors.click();
+    }
+
+    clickFavoritesTab() {
+        buttonColors.click();
+    }
  
     /**
      * overwrite specifc options to adapt it to page object

@@ -125,8 +125,36 @@ describe('WLED application', () => {
         const color = HomePage.quickColorSelect(9).getCSSProperty('background-color')
         expect(color.parsed.hex).toBe('#08ff00');
     });
+
+    it('quick color selects should be the correct size', () => {
+        HomePage.open();
+
+        for (let i = 0; i < 10; i++) {
+            const size = HomePage.quickColorSelect(i).getSize();
+            expect(size.width).toBe(28);
+            expect(size.height).toBe(28);
+         }
+    });
+
+    // // it('csl presets should be the correct size', () => {
+    // //     HomePage.open();
+
+    // //     for (let i = 0; i < 3; i++) {
+    // //         const button = HomePage.cslButton(i);
+    // //         const margin = button.getCSSProperty('margin');
+
+    // //         const size = button.getSize();
+
+    // //         if (margin.parsed.value > 4) {
+    // //             // selected - smaller due to big border?
+    // //             expect(size.width).toBe(40);
+    // //             expect(size.height).toBe(40);    
+    // //         } else {
+    // //              // not selected
+    // //              expect(size.width).toBe(44);
+    // //              expect(size.height).toBe(44);    
+                
+    // //         }
+    // //       }
+    // // });
 });
-
-
-
-
