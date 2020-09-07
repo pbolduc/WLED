@@ -15,6 +15,8 @@
 #endif
 //#include "usermod_v2_empty.h"
 
+#include "usermod_latency.h"
+
 void registerUsermods()
 {
   /*
@@ -22,7 +24,7 @@ void registerUsermods()
    * || || ||
    * \/ \/ \/
    */
-  //usermods.add(new MyExampleUsermod());
+  usermods.add(new UsermodLatency());
   #ifdef USERMOD_DALLASTEMPERATURE
   usermods.add(new UsermodTemperature());
   #endif
