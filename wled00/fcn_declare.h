@@ -159,6 +159,9 @@ class UsermodManager {
     Usermod* ums[WLED_MAX_USERMODS];
     byte numMods = 0;
 
+    // records the last time the usermod's loop was called
+    unsigned long loopExecutedAt = 0;
+
   public:
     void loop();
 
