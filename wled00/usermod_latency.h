@@ -9,6 +9,8 @@ class UsermodLatency : public Usermod {
     unsigned long last;
     unsigned long latency;
 
+    unsigned long latencyMax;
+
   public:
     void setup() {
       last = micros();
@@ -17,6 +19,10 @@ class UsermodLatency : public Usermod {
     void loop() {
       unsigned long now = micros();
       latency = ELAPSED(now, last);
+      // only measure the max latency after we have been booted for 2 seconds
+      if (latencyMax < latency && 2000000 <= now ) {
+        latencyMax = latency;
+      }
       last = now;
     }
 
@@ -26,6 +32,10 @@ class UsermodLatency : public Usermod {
 
       JsonArray temp = user.createNestedArray("Latency");
       temp.add(latency);
+      temp.add(" μs");
+
+      temp = user.createNestedArray("Max Latency");
+      temp.add(latencyMax);
       temp.add(" μs");
       return;
     }
