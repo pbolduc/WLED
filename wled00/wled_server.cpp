@@ -271,9 +271,12 @@ void serveIndex(AsyncWebServerRequest* request)
   if (handleFileRead(request, "/index.htm")) return;
   #endif
 
+  //request->headerName
+
   AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", PAGE_index, PAGE_index_L);
 
   response->addHeader("Content-Encoding","gzip");
+  response->addHeader("ETag", PAGE_index_Etag);
   
   request->send(response);
 }
