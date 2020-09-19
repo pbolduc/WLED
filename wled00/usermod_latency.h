@@ -4,28 +4,48 @@
 
 #define ELAPSED(current, previous) ((previous) <= (current) ? (current) - (previous) : (UINT32_MAX - previous) + current)
 
-#define SAMPLE_COUNT 1000
+template <uint8_t K, class uint_t = uint16_t>
+class EMA {
+  public:
+    /// Update the filter with the given input and return the filtered output.
+    uint_t operator()(uint_t input) {
+        state += input;
+        uint_t output = (state + half) >> K;
+        state -= output;
+        return output;
+    }
+
+    static_assert(
+        uint_t(0) < uint_t(-1),  // Check that `uint_t` is an unsigned type
+        "The `uint_t` type should be an unsigned integer, otherwise, "
+        "the division using bit shifts is invalid.");
+
+    /// Fixed point representation of one half, used for rounding.
+    constexpr static uint_t half = 1 << (K - 1);
+
+  private:
+    uint_t state = 0;
+};
 
 class UsermodLatency : public Usermod {
   private:
-    unsigned long samples[SAMPLE_COUNT];
-    unsigned long total = 0;
-    unsigned long samples_count = 0;
-
+    char topic[38] = { 0 };
+    EMA<2> filter;
     // the previous micros value
     unsigned long previous = 0;
-    // true if we have populated all SAMPLE_COUNT samples
-    bool full_samples = false;
-    bool firstLoop = true;
 
     unsigned long lastPublish = 0;
+    bool firstLoop =  true;
 
   public:
     void setup() {
+      strcpy(topic, mqttDeviceTopic);
+      strcat(topic, "/loop-latency");
     }
 
     void loop() {
       unsigned long current = micros();
+      int filteredValue;
 
       if (firstLoop) {
         // need to capture the first loop time on the first 
@@ -33,42 +53,27 @@ class UsermodLatency : public Usermod {
         // additional latency
         firstLoop = false;
       } else {
-        // calculate the time between loop() calls
-        unsigned long sample = ELAPSED(current, previous);
-
-        samples[samples_count++] = sample;
-        total += sample;
-
-        // just keep accumulating the samples until our rolling
-        // average buffer is full
-        if (!full_samples) {
-          full_samples = (samples_count == SAMPLE_COUNT);
-        } else {
-          // subtract the oldest value from the total
-          total -=  samples[samples_count % SAMPLE_COUNT];
-        }
+        unsigned long elapsed = ELAPSED(current, previous);
+        filteredValue = filter(elapsed);
       }
 
       previous = current;
 
 
       unsigned long now = millis();
-      // publish every 5 seconds
-      if (now - lastPublish < 5000)
+      // publish every 1 second
+      if (now - lastPublish < 1000)
       {
         return;
       }
 
       lastPublish = now;
 
-      if (WLED_MQTT_CONNECTED) {
-          float average = (1.0/SAMPLE_COUNT)  * total;
+      Serial.println(filteredValue);
 
-          char topic[38];
-          strcpy(topic, mqttDeviceTopic);
-          strcat(topic, "/loop-latency");
-          mqtt->publish(topic, 0, true, String(average).c_str());
-        }
+      if (WLED_MQTT_CONNECTED) {
+          mqtt->publish(topic, 0, true, String(filteredValue).c_str());
+      }
     }
 
     void addToJsonInfo(JsonObject& root) {
