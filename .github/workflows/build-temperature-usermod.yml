@@ -21,7 +21,7 @@ jobs:
         source: "usermods/Temperature/platformio_override.ini"
         target: "platformio_override.ini"
     - name: Run PlatformIO
-      run: platformio run -e d1_mini_usermod_dallas_temperature_C
+      run: platformio run -e d1_mini_usermod_dallas_temperature_C -e d1_mini_usermod_dallas_temperature_F -d esp32dev_usermod_dallas_temperature_C -e esp32dev_usermod_dallas_temperature_F
     - name: Archive compiled firmware
       uses: actions/upload-artifact@v2
       with:
