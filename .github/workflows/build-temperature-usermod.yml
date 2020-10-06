@@ -6,6 +6,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [d1_mini_usermod_dallas_temperature_C, d1_mini_usermod_dallas_temperature_F, esp32dev_usermod_dallas_temperature_C, esp32dev_usermod_dallas_temperature_F]
 
     steps:
     - uses: actions/checkout@v1
@@ -21,9 +24,9 @@ jobs:
         source: "usermods/Temperature/platformio_override.ini"
         target: "platformio_override.ini"
     - name: Run PlatformIO
-      run: platformio run -e d1_mini_usermod_dallas_temperature_C -e d1_mini_usermod_dallas_temperature_F -e esp32dev_usermod_dallas_temperature_C -e esp32dev_usermod_dallas_temperature_F
+      run: platformio run -e ${{ matrix.environment }}
     - name: Archive compiled firmware
       uses: actions/upload-artifact@v2
       with:
-        name: firmware
-        path: .pio/build/**/firmware.bin
+        name: ${{ matrix.environment }}
+        path: .pio/build/${{ matrix.environment }}/firmware.bin
