@@ -17,3 +17,9 @@ jobs:
         pip install platformio
     - name: Run PlatformIO
       run: platformio run
+    - name: Archive compiled firmware
+      uses: actions/upload-artifact@v2
+      with:
+        name: firmware
+        path: .pio/build/**/firmware.bin
+
