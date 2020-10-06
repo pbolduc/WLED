@@ -9,6 +9,8 @@ jobs:
     strategy:
       matrix:
         environment: [d1_mini_usermod_dallas_temperature_C, d1_mini_usermod_dallas_temperature_F, esp32dev_usermod_dallas_temperature_C, esp32dev_usermod_dallas_temperature_F]
+    env:
+      SHA8: ${GITHUB_SHA::8}
 
     steps:
     - uses: actions/checkout@v1
@@ -28,5 +30,5 @@ jobs:
     - name: Archive compiled firmware
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.environment }}-$(git rev-parse --short "$GITHUB_SHA")
+        name: ${{ matrix.environment }}-${{SHA8}}
         path: .pio/build/${{ matrix.environment }}/firmware.bin
