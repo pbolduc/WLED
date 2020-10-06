@@ -28,5 +28,5 @@ jobs:
     - name: Archive compiled firmware
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.environment }}
+        name: ${{ matrix.environment }}-$(git rev-parse --short "$GITHUB_SHA")
         path: .pio/build/${{ matrix.environment }}/firmware.bin
