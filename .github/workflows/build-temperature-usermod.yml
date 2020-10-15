@@ -11,8 +11,6 @@ jobs:
     strategy: 
       matrix: 
         environment: [ESP8266_Temp, ESP32_Temp_ledpin16] 
-    env: 
-      SHA8: ${GITHUB_SHA::8} 
  
     steps: 
     - uses: actions/checkout@v1 
@@ -30,9 +28,9 @@ jobs:
     - name: Run PlatformIO 
       run: platformio run -e ${{ matrix.environment }}
     - name: Rename firmware
-      run: mv .pio/build/${{ matrix.environment }}/firmware.bin .pio/build/${{ matrix.environment }}/${{ matrix.environment }}-${{ env.SHA8 }}.bin
+      run: mv .pio/build/${{ matrix.environment }}/firmware.bin .pio/build/${{ matrix.environment }}/${{ matrix.environment }}.bin
     - name: Archive compiled firmware 
       uses: actions/upload-artifact@v2 
       with: 
-        name: ${{ matrix.environment }}-${{ env.SHA8 }}
-        path: .pio/build/${{ matrix.environment }}/${{ matrix.environment }}-${{ env.SHA8 }}.bin
+        name: ${{ matrix.environment }}
+        path: .pio/build/${{ matrix.environment }}/${{ matrix.environment }}.bin
