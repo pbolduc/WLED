@@ -26,7 +26,7 @@ jobs:
         source: "usermods/Temperature/platformio_override.ini" 
         target: "platformio_override.ini" 
     - name: Run PlatformIO 
-      run: platformio run -e ${{ matrix.environment }}
+      run: platformio run -e ${{ matrix.environment }} --verbose
     - name: Rename firmware
       run: mv .pio/build/${{ matrix.environment }}/firmware.bin .pio/build/${{ matrix.environment }}/${{ matrix.environment }}.bin
     - name: Archive compiled firmware 
