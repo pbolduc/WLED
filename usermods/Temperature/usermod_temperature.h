@@ -3,9 +3,6 @@
 #include "wled.h"
 #include "FX.h"
 
-// do not use 1-wire search, crc or alarms
-#define REQUIRESALARMS 0
-
 #include <DallasTemperature.h> //DS18B20
 
 #ifndef TEMPERATURE_PIN
@@ -17,6 +14,15 @@
 #endif
 #endif
 
+// define USERMOD_DALLASTEMPERATURE_ERROR_COUNTS 0 to not use errro counts
+#ifndef USERMOD_DALLASTEMPERATURE_ERROR_COUNTS
+#define USERMOD_DALLASTEMPERATURE_ERROR_COUNTS 1
+#endif
+
+#ifndef USERMOD_DALLASTEMPERATURE_RESOLUTION
+#define USERMOD_DALLASTEMPERATURE_RESOLUTION 9
+#endif
+
 // the frequency to check temperature, 1 minute
 #ifndef USERMOD_DALLASTEMPERATURE_MEASUREMENT_INTERVAL
 #define USERMOD_DALLASTEMPERATURE_MEASUREMENT_INTERVAL 60000
@@ -26,6 +32,18 @@
 #ifndef USERMOD_DALLASTEMPERATURE_FIRST_MEASUREMENT_AT
 #define USERMOD_DALLASTEMPERATURE_FIRST_MEASUREMENT_AT 20000
 #endif
+
+#if USERMOD_DALLASTEMPERATURE_RESOLUTION == 9
+#define USERMOD_DALLASTEMPERATURE_CONVERSION_TIME 94 // 93.75 ms per the datasheet
+#elif USERMOD_DALLASTEMPERATURE_RESOLUTION == 10
+#define USERMOD_DALLASTEMPERATURE_CONVERSION_TIME 188 // 187.5 ms per the datasheet
+#elif USERMOD_DALLASTEMPERATURE_RESOLUTION == 11
+#define USERMOD_DALLASTEMPERATURE_CONVERSION_TIME 375 // 375 ms per the datasheet
+#elif USERMOD_DALLASTEMPERATURE_RESOLUTION == 12
+#define USERMOD_DALLASTEMPERATURE_CONVERSION_TIME 750 // 750 ms per the datasheet
+#else
+#error Invalid value for USERMOD_DALLASTEMPERATURE_RESOLUTION - must be 9,10,11 or 12
+#endif 
 
 OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensor(&oneWire);
@@ -41,8 +59,11 @@ private:
   // we have to wait at least 93.75 ms after requestTemperatures() is called
   uint32_t _lastTemperaturesRequest;
 
+#if USERMOD_DALLASTEMPERATURE_ERROR_COUNTS
+  // keep track of how many errors against the 1-wire bus we have
   uint32_t _errorCount = 0;
   uint32_t _errorCountPublished = 0;
+#endif
 
   float _temperature = -100; // default to -100, DS18B20 only goes down to -50C
 
@@ -69,7 +90,9 @@ private:
     else
     {
       DEBUG_PRINTLN("sensor.requestTemperatures failed");
+#if USERMOD_DALLASTEMPERATURE_ERROR_COUNTS
       _errorCount++;
+#endif
     }
   }
 
@@ -83,7 +106,7 @@ private:
 
     float currentTemperature;
     // readTemperature takes 3,219 μs on ESP32
-    if (sensor.readTemperature(&currentTemperature, 9))
+    if (sensor.readTemperature(&currentTemperature, USERMOD_DALLASTEMPERATURE_RESOLUTION))
     { 
       _temperature = currentTemperature;
 
@@ -93,14 +116,21 @@ private:
 
       _lastMeasurement = millis();
 
-      DEBUG_PRINT("Dallas Temperature Sensor: ");
-      DEBUG_PRINT("Temperature: ");
-      DEBUG_PRINTLN(_temperature);
+      DEBUG_PRINT("Dallas Temperature Sensor: temperature is ");
+      DEBUG_PRINT(_temperature);
+#ifdef USERMOD_DALLASTEMPERATURE_CELSIUS
+    DEBUG_PRINTLN(" C");
+#else
+    DEBUG_PRINTLN(" F");
+#endif
+
     }
     else
     {
       DEBUG_PRINTLN("Dallas Temperature Sensor: readTemperature failed");
+#if USERMOD_DALLASTEMPERATURE_ERROR_COUNTS
       _errorCount++;
+#endif
     }
 
     // reset the state
@@ -132,6 +162,7 @@ private:
 
   void publishErrorsToMqtt()
   {
+#if USERMOD_DALLASTEMPERATURE_ERROR_COUNTS
     // if there are no errors, then do not publish
     if (_errorCount == 0)
     {
@@ -156,6 +187,7 @@ private:
       mqtt->publish(subuf, 0, true, String(_errorCount).c_str());
       _errorCountPublished = now;
     }
+#endif
   }
 
   /* Returns a value indicating the strip is on and scheduled to be updated in the next 4 milliseconds. */
@@ -168,22 +200,28 @@ private:
 public:
   void setup()
   {
-    //sensor.begin(); // we dont need to call sensor begin, it only does a search of the 1-wire bus
+    DEBUG_PRINT("Dallas Temperature Sensor: using 1-wire pin ");
+    DEBUG_PRINTLN(TEMPERATURE_PIN);
 
+    // We dont need to call sensor begin, it only does a search of the 1-wire bus
+    //sensor.begin(); 
+    
     // get the first (only) device address
-    DeviceAddress deviceAddress;
-    _disabled = sensor.getAddress(deviceAddress, 0);
+    uint8_t deviceAddress[8];
+    _disabled = sensor.getAddress(&deviceAddress[0], 0);  // 15,093 μs on ESP32
 
     if (!_disabled)
     {
-      DEBUG_PRINTLN("Dallas Temperature Sensor: ok");
-      sensor.setResolution(deviceAddress, 9, true);
+      DEBUG_PRINTLN("Dallas Temperature Sensor: sensor found");
+      sensor.setResolution(deviceAddress, USERMOD_DALLASTEMPERATURE_RESOLUTION, true);
       sensor.setWaitForConversion(false); // do not block waiting for reading
     }
     else
     {
-      DEBUG_PRINTLN("Dallas Temperature Sensor: error");
+      DEBUG_PRINTLN("Dallas Temperature Sensor: sensor not found");
+#if USERMOD_DALLASTEMPERATURE_ERROR_COUNTS
       _errorCount++;
+#endif
     }
   }
 
@@ -218,7 +256,7 @@ public:
     }
 
     // we were waiting for a conversion to complete, have we waited log enough?
-    if (now - _lastTemperaturesRequest >= 94 /* 93.75ms per the datasheet */)
+    if (now - _lastTemperaturesRequest >= USERMOD_DALLASTEMPERATURE_CONVERSION_TIME /* 93.75ms per the datasheet */)
     {
       getTemperature();
       publishTemperatureToMqtt();
