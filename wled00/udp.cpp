@@ -61,7 +61,7 @@ void notify(byte callMode, bool followUp)
   udpOut[28] = (t >>  0) & 0xFF;
   
   IPAddress broadcastIp;
-  broadcastIp = ~uint32_t(WiFi.subnetMask()) | uint32_t(WiFi.gatewayIP());
+  broadcastIp = ~uint32_t(Network.subnetMask()) | uint32_t(Network.gatewayIP());
 
   notifierUdp.beginPacket(broadcastIp, udpPort);
   notifierUdp.write(udpOut, WLEDPACKETSIZE);
@@ -85,7 +85,8 @@ void realtimeLock(uint32_t timeoutMs, byte md)
   if (timeoutMs == 255001 || timeoutMs == 65000) realtimeTimeout = UINT32_MAX;
   realtimeMode = md;
 
-  if (arlsForceMaxBri && !realtimeOverride) strip.setBrightness(255);
+  if (arlsForceMaxBri && !realtimeOverride) strip.setBrightness(scaledBri(255));
+  if (md == REALTIME_MODE_GENERIC) strip.show();
 }
 
 
@@ -105,7 +106,7 @@ void handleNotifications()
   if(udpConnected && notificationTwoRequired && millis()-notificationSentTime > 250){
     notify(notificationSentCallMode,true);
   }
-
+  
   if (e131NewData && millis() - strip.getLastShow() > 15)
   {
     e131NewData = false;
@@ -116,46 +117,56 @@ void handleNotifications()
   if (realtimeMode && millis() > realtimeTimeout)
   {
     if (realtimeOverride == REALTIME_OVERRIDE_ONCE) realtimeOverride = REALTIME_OVERRIDE_NONE;
-    strip.setBrightness(bri);
+    strip.setBrightness(scaledBri(bri));
     realtimeMode = REALTIME_MODE_INACTIVE;
     realtimeIP[0] = 0;
   }
 
   //receive UDP notifications
-  if (!udpConnected || !(receiveNotifications || receiveDirect)) return;
+  if (!udpConnected) return;
     
+  bool isSupp = false;
   uint16_t packetSize = notifierUdp.parsePacket();
+  if (!packetSize && udp2Connected) {
+    packetSize = notifier2Udp.parsePacket();
+    isSupp = true;
+  }
 
   //hyperion / raw RGB
   if (!packetSize && udpRgbConnected) {
     packetSize = rgbUdp.parsePacket();
-    if (!receiveDirect) return;
-    if (packetSize > UDP_IN_MAXSIZE || packetSize < 3) return;
-    realtimeIP = rgbUdp.remoteIP();
-    DEBUG_PRINTLN(rgbUdp.remoteIP());
-    uint8_t lbuf[packetSize];
-    rgbUdp.read(lbuf, packetSize);
-    realtimeLock(realtimeTimeoutMs, REALTIME_MODE_HYPERION);
-    if (realtimeOverride) return;
-    uint16_t id = 0;
-    for (uint16_t i = 0; i < packetSize -2; i += 3)
-    {
-      setRealtimePixel(id, lbuf[i], lbuf[i+1], lbuf[i+2], 0);
-      
-      id++; if (id >= ledCount) break;
-    }
-    strip.show();
-    return;
+    if (packetSize) {
+      if (!receiveDirect) return;
+      if (packetSize > UDP_IN_MAXSIZE || packetSize < 3) return;
+      realtimeIP = rgbUdp.remoteIP();
+      DEBUG_PRINTLN(rgbUdp.remoteIP());
+      uint8_t lbuf[packetSize];
+      rgbUdp.read(lbuf, packetSize);
+      realtimeLock(realtimeTimeoutMs, REALTIME_MODE_HYPERION);
+      if (realtimeOverride) return;
+      uint16_t id = 0;
+      for (uint16_t i = 0; i < packetSize -2; i += 3)
+      {
+        setRealtimePixel(id, lbuf[i], lbuf[i+1], lbuf[i+2], 0);
+        
+        id++; if (id >= ledCount) break;
+      }
+      strip.show();
+      return;
+    } 
   }
 
+  if (!(receiveNotifications || receiveDirect)) return;
+  
   //notifier and UDP realtime
   if (!packetSize || packetSize > UDP_IN_MAXSIZE) return;
-  if (notifierUdp.remoteIP() == WiFi.localIP())   return; //don't process broadcasts we send ourselves
+  if (!isSupp && notifierUdp.remoteIP() == Network.localIP()) return; //don't process broadcasts we send ourselves
 
-  uint8_t udpIn[packetSize];
-  notifierUdp.read(udpIn, packetSize);
+  uint8_t udpIn[packetSize +1];
+  if (isSupp) notifier2Udp.read(udpIn, packetSize);
+  else         notifierUdp.read(udpIn, packetSize);
 
-  //wled notifier, block if realtime packets active
+  //wled notifier, ignore if realtime packets active
   if (udpIn[0] == 0 && !realtimeMode && receiveNotifications)
   {
     //ignore notification if received within a second after sending a notification ourselves
@@ -212,8 +223,9 @@ void handleNotifications()
     
     if (receiveNotificationBrightness || !someSel) bri = udpIn[2];
     colorUpdated(NOTIFIER_CALL_MODE_NOTIFICATION);
-    
+    return;
   }
+
   if (!receiveDirect) return;
   
   //TPM2.NET
@@ -227,7 +239,7 @@ void handleNotifications()
     }
     if (tpmType != 0xda) return; //return if notTPM2.NET data
 
-    realtimeIP = notifierUdp.remoteIP();
+    realtimeIP = (isSupp) ? notifier2Udp.remoteIP() : notifierUdp.remoteIP();
     realtimeLock(realtimeTimeoutMs, REALTIME_MODE_TPM2NET);
     if (realtimeOverride) return;
 
@@ -251,13 +263,14 @@ void handleNotifications()
       tpmPacketCount = 0;
       strip.show();
     }
+    return;
   }
 
   //UDP realtime: 1 warls 2 drgb 3 drgbw
   if (udpIn[0] > 0 && udpIn[0] < 5)
   {
-    realtimeIP = notifierUdp.remoteIP();
-    DEBUG_PRINTLN(notifierUdp.remoteIP());
+    realtimeIP = (isSupp) ? notifier2Udp.remoteIP() : notifierUdp.remoteIP();
+    DEBUG_PRINTLN(realtimeIP);
     if (packetSize < 2) return;
 
     if (udpIn[1] == 0)
@@ -304,6 +317,21 @@ void handleNotifications()
       }
     }
     strip.show();
+    return;
+  }
+
+  // API over UDP
+  udpIn[packetSize] = '\0';
+
+  if (udpIn[0] >= 'A' && udpIn[0] <= 'Z') { //HTTP API
+    String apireq = "win&";
+    apireq += (char*)udpIn;
+    handleSet(nullptr, apireq);
+  } else if (udpIn[0] == '{') { //JSON API
+    DynamicJsonDocument jsonBuffer(2048);
+    DeserializationError error = deserializeJson(jsonBuffer, udpIn);
+    JsonObject root = jsonBuffer.as<JsonObject>();
+    if (!error && !root.isNull()) deserializeState(root);
   }
 }
 
